@@ -1,7 +1,5 @@
 package de.neylux.optifinecapes;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import de.neylux.optifinecapes.util.CapeUtil;
@@ -14,13 +12,10 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class PlayerCapeManager {
     private final HashMap<UUID, PlayerCapeHandler> capeHandlers = new HashMap<>();
-    private final Cache<UUID, ResourceLocation> capeCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .build();
+    private final HashMap<UUID, ResourceLocation> capeCache = new HashMap<>();
     private final ExecutorService capeExecutor = Executors.newFixedThreadPool(4);
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -28,22 +23,26 @@ public class PlayerCapeManager {
         return capeHandlers.computeIfAbsent(profile.getId(), uuid -> new PlayerCapeHandler(profile) {
             @Override
             public void fetchCape() {
-                try {
-                    ResourceLocation capeTexture = capeCache.get(getProfile().getId(), () -> capeExecutor.submit(
-                            () -> CapeUtil.getCapeByProfile(getProfile())
-                                    .map(capeImage -> Minecraft.getInstance().getTextureManager().register(
-                                            "optifine-cape-" + getProfile().getId(),
-                                            new DynamicTexture(capeImage)
-                                    ))
-                                    .orElseThrow()
-                    ).get());
-
+                ResourceLocation cachedCape = capeCache.get(getProfile().getId());
+                if (cachedCape != null) {
                     setCapeAvailable(true);
-                    setCapeTexture(capeTexture);
-                    LOGGER.info("Loaded cape for: " + getProfile().getName());
-                } catch (Exception e) {
-                    LOGGER.error("Failed to get cape for: " + getProfile().getName(), e);
-                    setCapeAvailable(false);
+                    setCapeTexture(cachedCape);
+                    LOGGER.info("Loaded cached cape for: " + getProfile().getName());
+                } else {
+                    capeExecutor.submit(() -> CapeUtil.getCapeByProfile(getProfile()).ifPresentOrElse(capeImage -> {
+                        setCapeAvailable(true);
+
+                        Minecraft.getInstance().execute(() -> {
+                            var capeTexture = Minecraft.getInstance().getTextureManager().register(
+                                    "optifine-cape-" + getProfile().getId(),
+                                    new DynamicTexture(capeImage)
+                            );
+
+                            setCapeTexture(capeTexture);
+                            capeCache.put(getProfile().getId(), capeTexture);
+                            LOGGER.info("Got cape of: " + getProfile().getName());
+                        });
+                    }, () -> setCapeAvailable(false)));
                 }
             }
         });
