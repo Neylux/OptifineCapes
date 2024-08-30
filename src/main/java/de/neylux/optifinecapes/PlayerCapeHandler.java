@@ -12,7 +12,7 @@ public abstract class PlayerCapeHandler {
         this.profile = profile;
     }
 
-    public abstract void setCape();
+    public abstract void fetchCape();
 
     public GameProfile getProfile() {
         return profile;

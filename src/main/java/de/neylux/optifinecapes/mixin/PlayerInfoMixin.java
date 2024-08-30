@@ -21,9 +21,10 @@ public class PlayerInfoMixin {
     @ModifyReturnValue(method = "getSkin", at = @At("TAIL"))
     public PlayerSkin changeGetSkin(PlayerSkin original) {
         PlayerCapeHandler handler = OptifineCapes.getPlayerCapeManager().getCapeHandler(profile);
+
         if (!capeLoaded) {
             capeLoaded = true;
-            handler.setCape();
+            handler.fetchCape();
         }
 
         return new PlayerSkin(
