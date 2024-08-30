@@ -20,7 +20,7 @@ public class PlayerCapeManager {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public PlayerCapeHandler getCapeHandler(GameProfile profile) {
-        return capeHandlers.computeIfAbsent(profile.getId(), uuid -> new PlayerCapeHandler(profile) {
+        return capeHandlers.computeIfAbsent(profile.getId(), uuid -> new PlayerCapeHandler(profile, null, false) {
             @Override
             public void fetchCape() {
                 ResourceLocation cachedCape = capeCache.get(getProfile().getId());

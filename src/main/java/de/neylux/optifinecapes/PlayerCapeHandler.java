@@ -5,11 +5,13 @@ import net.minecraft.resources.ResourceLocation;
 
 public abstract class PlayerCapeHandler {
     private final GameProfile profile;
-    private ResourceLocation capeTexture = null;
-    private boolean capeAvailable = false;
+    private ResourceLocation capeTexture;
+    private boolean capeAvailable;
 
-    public PlayerCapeHandler(GameProfile profile) {
+    public PlayerCapeHandler(GameProfile profile, ResourceLocation capeTexture, boolean capeAvailable) {
         this.profile = profile;
+        this.capeTexture = capeTexture;
+        this.capeAvailable = capeAvailable;
     }
 
     public abstract void fetchCape();
