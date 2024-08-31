@@ -51,6 +51,15 @@ public class CapeUtil {
         return Optional.ofNullable(futureCapeImage.join());
     }
 
+    /**
+     * Default optifine capes have a size of 46px x 22px;
+     * "On load, a canvas is initialized with a size of 64px x 32px.
+     * If the supplied cape image is larger in width or height, it doubles the dimensions of the canvas repeatedly until it is large enough to fit the original image."
+     *
+     * @param image the original native image with the optifine cape texture
+     * @return the resized native image
+     * @see <a href="https://optifine.readthedocs.io/capes.html#locking">Optifine Docs</a>
+     */
     private static @NotNull NativeImage resizeCape(@NotNull NativeImage image) {
         int imageWidth = 64;
         int imageHeight = 32;
